@@ -1,0 +1,12 @@
+
+[
+  {
+      "featureType": "administrative.country",
+      "elementType": "geometry.stroke",
+      "stylers": [
+        {
+          "color": "#89181a"
+        }
+      ]
+    }
+]
