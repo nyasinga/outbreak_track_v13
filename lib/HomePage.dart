@@ -1,14 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:country_pickers/country.dart';
+import 'package:country_pickers/country_picker_cupertino.dart';
+import 'package:country_pickers/country_pickers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:location/location.dart';
 import 'package:outbreak_tracker/DialogHelpers.dart';
 import 'package:outbreak_tracker/entities/LocationLatLng.dart';
+import 'package:outbreak_tracker/entities/app_state.dart';
 import 'package:outbreak_tracker/util/GlobalAppConstants.dart';
 
 class HomePage extends StatefulWidget {
@@ -17,7 +23,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool searchSelected = true;
+  bool searchSelected = false;
+  String currentCountry = 'Kenya';
   Completer<GoogleMapController> _controller = Completer();
   GoogleMapController mapController;
   static const LatLng _center = const LatLng(45.521563, -122.677433);
@@ -25,6 +32,7 @@ class _HomePageState extends State<HomePage> {
   LocationLatLng locationLatLng = new LocationLatLng();
   var logoPaddingValueSearch = 150.0;
   var logoPaddingValueDetails = 0.0;
+  Map<String, double> userLocation;
 
   String searchValue = "";
   String _mapStyle;
@@ -40,6 +48,13 @@ class _HomePageState extends State<HomePage> {
     rootBundle.loadString('assets/map_style.txt').then((string) {
       _mapStyle = string;
     });
+  }
+
+  Future<Map<String, double>> _getUserDefaultLocation() async {
+    var location = new Location();
+    userLocation = await location.getLocation();
+
+    return userLocation;
   }
 
   Future<LocationLatLng> findSearchedLocation(String location) async {
@@ -81,16 +96,18 @@ class _HomePageState extends State<HomePage> {
     )));
   }
 
-  void detailsLinkClicked(String s, BuildContext context) {
+  void detailsLinkClicked(String s, BuildContext context, state) {
+    int countryId = getCountryId(state);
+    int caseId = 1;
     switch (s) {
       case 'Country Data':
-        _dialogHelpers.showCountryData(context);
+        _dialogHelpers.showCountryData(context, countryId, caseId);
         break;
       case 'Hotspot':
-        _dialogHelpers.showHotspotData(context);
+        _dialogHelpers.showHotspotData(context, countryId, caseId);
         break;
-      case 'Rate of Spread':
-        _dialogHelpers.showRateOfSpreadData(context);
+      case 'Rate of spread':
+        _dialogHelpers.showRateOfSpreadData(context, countryId, caseId);
         break;
     }
   }
@@ -150,15 +167,23 @@ class _HomePageState extends State<HomePage> {
                 color: Color.fromRGBO(255, 255, 255, 0.7),
               ),
               searchSelected
-                  ? Align( //User already searched
+                  ? Align(
+                      //User already searched
                       alignment: Alignment.topCenter,
                       child: Column(
                         children: <Widget>[
                           Image(
-                            image: AssetImage('assets/graphics/OT-logo.jpg'),
+                            image: AssetImage('assets/graphics/outbreak-logo.jpeg'),
                           ),
                           Container(
-                            padding: EdgeInsetsDirectional.only(top: 20.0),
+                            width: 140.0,
+                            padding: EdgeInsetsDirectional.only(
+                                top: 20.0),
+                            child: Divider(
+                              thickness: 7.0,
+                              color:
+                              GlobalAppConstants.appMainColor,
+                            ),
                           ),
                           Text(
                             GlobalAppConstants.countryData,
@@ -181,50 +206,68 @@ class _HomePageState extends State<HomePage> {
                                   direction: Axis.horizontal,
                                   alignment: WrapAlignment.spaceBetween,
                                   children: <Widget>[
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          detailsLinkClicked(
-                                              GlobalAppConstants.countryData, context);
-                                        });
+                                    StoreConnector<AppState, AppState>(
+                                      converter: (store) => store.state,
+                                      builder: (context, state) {
+                                        return GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              detailsLinkClicked(
+                                                  GlobalAppConstants.countryData,
+                                                  context, state);
+                                            });
+                                          },
+                                          child: Text(
+                                            '${GlobalAppConstants.countryData}',
+                                            style: TextStyle(
+                                                color: GlobalAppConstants
+                                                    .appMainColor),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        );
                                       },
-                                      child: Text(
-                                        '${GlobalAppConstants.countryData}',
-                                        style: TextStyle(
-                                            color: GlobalAppConstants
-                                                .appMainColor),
-                                        textAlign: TextAlign.center,
-                                      ),
                                     ),
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          detailsLinkClicked(
-                                              GlobalAppConstants.hotspot, context);
-                                        });
+                                    StoreConnector<AppState, AppState>(
+                                      converter: (store) => store.state,
+                                      builder: (context, state) {
+                                        return GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              detailsLinkClicked(
+                                                  GlobalAppConstants.hotspot,
+                                                  context, state);
+                                            });
+                                          },
+                                          child: Text(
+                                            '${GlobalAppConstants.hotspot}',
+                                            style: TextStyle(
+                                                color: GlobalAppConstants
+                                                    .appMainColor),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        );
                                       },
-                                      child: Text(
-                                        '${GlobalAppConstants.hotspot}',
-                                        style: TextStyle(
-                                            color: GlobalAppConstants
-                                                .appMainColor),
-                                        textAlign: TextAlign.center,
-                                      ),
                                     ),
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          detailsLinkClicked(
-                                              GlobalAppConstants.rateOfSpread, context);
-                                        });
+                                    StoreConnector<AppState, AppState>(
+                                      converter: (store) => store.state,
+                                      builder: (context, state) {
+                                        return GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              detailsLinkClicked(
+                                                  GlobalAppConstants.rateOfSpread,
+                                                  context, state);
+                                            });
+                                          },
+                                          child: Text(
+                                            '${GlobalAppConstants.rateOfSpread}',
+                                            style: TextStyle(
+                                                color: GlobalAppConstants
+                                                    .appMainColor),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        );
                                       },
-                                      child: Text(
-                                        '${GlobalAppConstants.rateOfSpread}',
-                                        style: TextStyle(
-                                            color: GlobalAppConstants
-                                                .appMainColor),
-                                        textAlign: TextAlign.center,
-                                      ),
                                     ),
                                   ],
                                 ),
@@ -232,89 +275,190 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                     )
-                  : Container(//User has not searched searched
-                      padding: EdgeInsets.only(top: logoPaddingValueSearch),
-                      child: Align(
-                        alignment: Alignment.topCenter,
-                        child: AnimatedContainer(
-                          duration: Duration(seconds: 1),
-                          curve: Curves.fastOutSlowIn,
+                  : Stack(
+                      children: <Widget>[
+                        Container(
+                          //User has not searched searched
+                          padding: EdgeInsets.only(top: logoPaddingValueSearch),
                           child: Column(
                             children: <Widget>[
-                              Image(
-                                image: AssetImage('assets/graphics/OT-logo.jpg'),
-                              ),
-                              Container(
-                                padding: EdgeInsetsDirectional.only(top: 20.0),
-                              ),
-                              Container(
-                                width: 140.0,
-                                padding: EdgeInsetsDirectional.only(bottom: 0.0),
-                                child: Divider(
-                                  thickness: 7.0,
-                                  color: GlobalAppConstants.appMainColor,
-                                ),
-                              ),
-                              Text(
-                                GlobalAppConstants.searchCountry,
-                                style: TextStyle(
-                                    color: GlobalAppConstants.appMainColor,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              Container(
-                                padding: EdgeInsetsDirectional.only(
-                                    start: 10.0, end: 10.0, top: 10.0),
-                                height: 50,
-                                child: CupertinoTextField(
-                                  placeholder: GlobalAppConstants.searchCountry,
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 10.0, vertical: 0.4),
-                                  prefix: Container(
-                                    padding:
-                                    EdgeInsetsDirectional.only(start: 10.0),
-                                    child: Icon(
-                                      CupertinoIcons.search,
-                                      color: CupertinoColors.black,
-                                      size: 22.0,
-                                    ),
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: CupertinoColors.white,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: CupertinoColors.black,
-                                      )
+                              Align(
+                                alignment: Alignment.topCenter,
+                                child: AnimatedContainer(
+                                  duration: Duration(seconds: 1),
+                                  curve: Curves.fastOutSlowIn,
+                                  child: Column(
+                                    children: <Widget>[
+                                      Image(
+                                        image: AssetImage(
+                                            'assets/graphics/OT-logo.jpg'),
+                                      ),
+                                      Container(
+                                        padding: EdgeInsetsDirectional.only(
+                                            top: 20.0),
+                                      ),
+                                      Container(
+                                        width: 140.0,
+                                        child: Divider(
+                                          thickness: 7.0,
+                                          color:
+                                              GlobalAppConstants.appMainColor,
+                                        ),
+                                      ),
+                                      Text(
+                                        GlobalAppConstants.searchCountry,
+                                        style: TextStyle(
+                                            color:
+                                                GlobalAppConstants.appMainColor,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      Container(
+                                          width: 250,
+                                          padding: EdgeInsetsDirectional.only(
+                                              top: 10.0),
+                                          child: CupertinoButton(
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: <Widget>[
+                                                Flexible(
+                                                  child: Text(
+                                                    currentCountry,
+                                                    style: TextStyle(
+                                                        color: CupertinoColors
+                                                            .black),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            onPressed:
+                                                _openCupertinoCountryPicker,
+                                            color: CupertinoColors.white,
+                                          )),
                                     ],
                                   ),
-                                  onChanged: (String value) {
-                                    setState(() {
-                                      searchValue = value;
-                                    });
-                                  },
-                                  onSubmitted: (searchValue) {
-                                    findSearchedLocation(searchValue)
-                                        .then((value) {
-                                      setState(() {
-                                        locationLatLng = value;
-                                        addMarkerToMarkerList(
-                                            value.lat, value.lng);
-                                        animateCameraPosition(
-                                            value.lat, value.lng, 5.0);
-                                        if (value.lat != null) {
-                                          searchSelected = true;
-                                        }
-                                      });
-                                    });
-                                  },
                                 ),
-                              )
+                              ),
                             ],
                           ),
-                        )
-                      ),
+                        ),
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Container(
+                              width: 250,
+                              padding: EdgeInsetsDirectional.only(bottom: 65.0),
+                              child: CupertinoButton(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    Text(
+                                      'Next',
+                                      style: TextStyle(
+                                          color: CupertinoColors.black),
+                                    ),
+                                    Icon(
+                                      CupertinoIcons.forward,
+                                      color: CupertinoColors.black,
+                                    ),
+                                  ],
+                                ),
+                                onPressed: () {
+//                                        showProgressBar();
+                                  if (searchValue == '') {
+                                    searchValue =
+                                        CountryPickerUtils.getCountryByIsoCode(
+                                                'KE')
+                                            .name;
+                                  }
+                                  findSearchedLocation(searchValue)
+                                      .then((value) {
+                                    setState(() {
+                                      locationLatLng = value;
+                                      addMarkerToMarkerList(
+                                          value.lat, value.lng);
+                                      animateCameraPosition(
+                                          value.lat, value.lng, 5.0);
+                                      if (value.lat != null) {
+                                        searchSelected = true;
+                                      }
+                                    });
+                                  });
+                                },
+                                color: CupertinoColors.white,
+                              )),
+                        ),
+                      ],
                     )
             ],
           ),
         ));
+  }
+
+  void _openCupertinoCountryPicker() => showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.symmetric(vertical: 150),
+          child: ListView(
+            children: <Widget>[
+              CountryPickerCupertino(
+                backgroundColor: Colors.white,
+                itemBuilder: _buildCupertinoItem,
+                pickerSheetHeight: 500.0,
+                pickerItemHeight: 75,
+                onValuePicked: (Country country) {
+                  setState(() {
+                    currentCountry = country.name;
+                    searchValue = country.name;
+                  });
+                },
+                initialCountry: CountryPickerUtils.getCountryByIsoCode('KE'),
+              ),
+              CupertinoButton(
+                child: Row(
+                  children: <Widget>[
+                    Text(
+                      'Done',
+                      style: TextStyle(color: CupertinoColors.black),
+                    ),
+                  ],
+                ),
+                onPressed: () {
+                  Navigator.of(context, rootNavigator: true).pop();
+                  setState(() {
+                    currentCountry = searchValue;
+                  });
+                },
+                color: CupertinoColors.white,
+              )
+            ],
+          ),
+        );
+      });
+
+  Widget _buildCupertinoItem(Country country) {
+    return DefaultTextStyle(
+      style: const TextStyle(
+        color: CupertinoColors.black,
+        fontSize: 16.0,
+      ),
+      child: Row(
+        children: <Widget>[
+          SizedBox(width: 8.0),
+          CountryPickerUtils.getDefaultFlagImage(country),
+          SizedBox(width: 8.0),
+          Text("+${country.phoneCode}"),
+          SizedBox(width: 8.0),
+          Flexible(child: Text(country.name))
+        ],
+      ),
+    );
+  }
+
+  void showProgressBar() {}
+
+  int getCountryId(state) {
+    int countryId = state.countries[currentCountry]['id'];
+    return countryId;
   }
 }
