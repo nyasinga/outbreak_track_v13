@@ -6,6 +6,7 @@ import 'package:outbreak_tracker/HomePage.dart';
 import 'package:outbreak_tracker/entities/Country.dart';
 import 'package:outbreak_tracker/entities/app_state.dart';
 import 'package:outbreak_tracker/redux/reducers.dart';
+import 'package:outbreak_tracker/util/GlobalAppConstants.dart';
 import 'package:redux/redux.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
@@ -48,7 +49,7 @@ class OutbreakTrackerApp extends StatelessWidget {
       store: store,
       child: CupertinoApp(
         theme: CupertinoThemeData(
-
+          primaryColor: GlobalAppConstants.appMainColor
         ),
         title: 'Outbreak Tracker',
         home: HomePage(),

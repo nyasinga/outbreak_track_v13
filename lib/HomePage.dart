@@ -1,9 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:country_pickers/country.dart';
-import 'package:country_pickers/country_picker_cupertino.dart';
-import 'package:country_pickers/country_pickers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -11,11 +8,11 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:location/location.dart';
 import 'package:outbreak_tracker/DialogHelpers.dart';
 import 'package:outbreak_tracker/entities/LocationLatLng.dart';
 import 'package:outbreak_tracker/entities/app_state.dart';
 import 'package:outbreak_tracker/util/GlobalAppConstants.dart';
+import 'package:outbreak_tracker/util/ProgressBarHelper.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -48,13 +45,6 @@ class _HomePageState extends State<HomePage> {
     rootBundle.loadString('assets/map_style.txt').then((string) {
       _mapStyle = string;
     });
-  }
-
-  Future<Map<String, double>> _getUserDefaultLocation() async {
-    var location = new Location();
-    userLocation = await location.getLocation();
-
-    return userLocation;
   }
 
   Future<LocationLatLng> findSearchedLocation(String location) async {
@@ -115,6 +105,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
+        resizeToAvoidBottomInset: false,
         navigationBar: CupertinoNavigationBar(
           leading: searchSelected
               ? CupertinoButton(
@@ -173,16 +164,15 @@ class _HomePageState extends State<HomePage> {
                       child: Column(
                         children: <Widget>[
                           Image(
-                            image: AssetImage('assets/graphics/outbreak-logo.jpeg'),
+                            image: AssetImage(
+                                'assets/graphics/outbreak-logo.jpeg'),
                           ),
                           Container(
                             width: 140.0,
-                            padding: EdgeInsetsDirectional.only(
-                                top: 20.0),
+                            padding: EdgeInsetsDirectional.only(top: 20.0),
                             child: Divider(
                               thickness: 7.0,
-                              color:
-                              GlobalAppConstants.appMainColor,
+                              color: GlobalAppConstants.appMainColor,
                             ),
                           ),
                           Text(
@@ -213,8 +203,10 @@ class _HomePageState extends State<HomePage> {
                                           onTap: () {
                                             setState(() {
                                               detailsLinkClicked(
-                                                  GlobalAppConstants.countryData,
-                                                  context, state);
+                                                  GlobalAppConstants
+                                                      .countryData,
+                                                  context,
+                                                  state);
                                             });
                                           },
                                           child: Text(
@@ -235,7 +227,8 @@ class _HomePageState extends State<HomePage> {
                                             setState(() {
                                               detailsLinkClicked(
                                                   GlobalAppConstants.hotspot,
-                                                  context, state);
+                                                  context,
+                                                  state);
                                             });
                                           },
                                           child: Text(
@@ -255,8 +248,10 @@ class _HomePageState extends State<HomePage> {
                                           onTap: () {
                                             setState(() {
                                               detailsLinkClicked(
-                                                  GlobalAppConstants.rateOfSpread,
-                                                  context, state);
+                                                  GlobalAppConstants
+                                                      .rateOfSpread,
+                                                  context,
+                                                  state);
                                             });
                                           },
                                           child: Text(
@@ -313,27 +308,46 @@ class _HomePageState extends State<HomePage> {
                                             fontWeight: FontWeight.bold),
                                       ),
                                       Container(
-                                          width: 250,
+                                          width: 300,
+                                          height: 60,
                                           padding: EdgeInsetsDirectional.only(
-                                              top: 10.0),
-                                          child: CupertinoButton(
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: <Widget>[
-                                                Flexible(
-                                                  child: Text(
-                                                    currentCountry,
-                                                    style: TextStyle(
-                                                        color: CupertinoColors
-                                                            .black),
-                                                  ),
-                                                ),
+                                              top: 20.0),
+                                          child: CupertinoTextField(
+                                            placeholder: currentCountry,
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 10.0,
+                                                vertical: 0.4),
+                                            prefix: Container(
+                                              padding:
+                                                  EdgeInsetsDirectional.only(
+                                                      start: 10.0),
+                                              child: Icon(
+                                                CupertinoIcons.search,
+                                                color: CupertinoColors.black,
+                                                size: 22.0,
+                                              ),
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: CupertinoColors.white,
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: CupertinoColors.black,
+                                                )
                                               ],
                                             ),
-                                            onPressed:
-                                                _openCupertinoCountryPicker,
-                                            color: CupertinoColors.white,
+                                            onChanged: (String value) {
+                                              setState(() {
+                                                searchValue = value;
+                                              });
+                                            },
+                                            onSubmitted: (searchValue) {
+                                              //Removes keyboard
+                                              FocusScopeNode currentFocus = FocusScope.of(context);
+
+                                              if (!currentFocus.hasPrimaryFocus) {
+                                                currentFocus.unfocus();
+                                              }
+                                            },
                                           )),
                                     ],
                                   ),
@@ -347,44 +361,53 @@ class _HomePageState extends State<HomePage> {
                           child: Container(
                               width: 250,
                               padding: EdgeInsetsDirectional.only(bottom: 65.0),
-                              child: CupertinoButton(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    Text(
-                                      'Next',
-                                      style: TextStyle(
-                                          color: CupertinoColors.black),
+                              child: StoreConnector<AppState, AppState>(
+                                converter: (store) => store.state,
+                                builder: (context, state) {
+                                  return CupertinoButton(
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: <Widget>[
+                                        Text(
+                                          'Next',
+                                          style: TextStyle(
+                                              color: CupertinoColors.black),
+                                        ),
+                                        Icon(
+                                          CupertinoIcons.forward,
+                                          color: CupertinoColors.black,
+                                        ),
+                                      ],
                                     ),
-                                    Icon(
-                                      CupertinoIcons.forward,
-                                      color: CupertinoColors.black,
-                                    ),
-                                  ],
-                                ),
-                                onPressed: () {
-//                                        showProgressBar();
-                                  if (searchValue == '') {
-                                    searchValue =
-                                        CountryPickerUtils.getCountryByIsoCode(
-                                                'KE')
-                                            .name;
-                                  }
-                                  findSearchedLocation(searchValue)
-                                      .then((value) {
-                                    setState(() {
-                                      locationLatLng = value;
-                                      addMarkerToMarkerList(
-                                          value.lat, value.lng);
-                                      animateCameraPosition(
-                                          value.lat, value.lng, 5.0);
-                                      if (value.lat != null) {
-                                        searchSelected = true;
+                                    onPressed: () {
+                                      try {
+                                        ProgressBarHelper(this.context).showProgressBar();
+                                        searchValue = "${searchValue.trim()[0]
+                                            .toUpperCase()}${searchValue.substring(1).trim().toLowerCase()}";
+                                        var intExpected = state.countries[searchValue]['id'];
+                                        findSearchedLocation(searchValue)
+                                            .then((value) {
+                                          setState(() {
+                                            currentCountry = searchValue;
+                                            locationLatLng = value;
+                                            addMarkerToMarkerList(
+                                                value.lat, value.lng);
+                                            animateCameraPosition(
+                                                value.lat, value.lng, 5.0);
+                                            if (value.lat != null) {
+                                              searchSelected = true;
+                                            }
+                                          });
+                                        });
+                                        Navigator.pop(this.context);
+                                      } catch(e) {
+                                        Navigator.pop(this.context);
+                                        showErrorMessage();
                                       }
-                                    });
-                                  });
+                                    },
+                                    color: CupertinoColors.white,
+                                  );
                                 },
-                                color: CupertinoColors.white,
                               )),
                         ),
                       ],
@@ -394,71 +417,23 @@ class _HomePageState extends State<HomePage> {
         ));
   }
 
-  void _openCupertinoCountryPicker() => showCupertinoModalPopup<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.symmetric(vertical: 150),
-          child: ListView(
-            children: <Widget>[
-              CountryPickerCupertino(
-                backgroundColor: Colors.white,
-                itemBuilder: _buildCupertinoItem,
-                pickerSheetHeight: 500.0,
-                pickerItemHeight: 75,
-                onValuePicked: (Country country) {
-                  setState(() {
-                    currentCountry = country.name;
-                    searchValue = country.name;
-                  });
-                },
-                initialCountry: CountryPickerUtils.getCountryByIsoCode('KE'),
-              ),
-              CupertinoButton(
-                child: Row(
-                  children: <Widget>[
-                    Text(
-                      'Done',
-                      style: TextStyle(color: CupertinoColors.black),
-                    ),
-                  ],
-                ),
-                onPressed: () {
-                  Navigator.of(context, rootNavigator: true).pop();
-                  setState(() {
-                    currentCountry = searchValue;
-                  });
-                },
-                color: CupertinoColors.white,
-              )
-            ],
-          ),
-        );
-      });
-
-  Widget _buildCupertinoItem(Country country) {
-    return DefaultTextStyle(
-      style: const TextStyle(
-        color: CupertinoColors.black,
-        fontSize: 16.0,
-      ),
-      child: Row(
-        children: <Widget>[
-          SizedBox(width: 8.0),
-          CountryPickerUtils.getDefaultFlagImage(country),
-          SizedBox(width: 8.0),
-          Text("+${country.phoneCode}"),
-          SizedBox(width: 8.0),
-          Flexible(child: Text(country.name))
-        ],
-      ),
-    );
-  }
-
-  void showProgressBar() {}
-
   int getCountryId(state) {
     int countryId = state.countries[currentCountry]['id'];
     return countryId;
   }
+
+  void showErrorMessage() => showCupertinoModalPopup<void> (
+    context: context,
+    builder: (BuildContext context) {
+      return Center(
+        heightFactor: 8,
+        child: Container(
+          width: 200,
+          child: Text('Country searched is not valid. Kindly confirm you named the country correctly',
+            style: TextStyle(fontWeight: FontWeight.bold, color: GlobalAppConstants.appMainColor),),
+        ),
+      );
+    }
+  );
+
 }

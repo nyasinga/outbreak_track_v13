@@ -6,9 +6,12 @@ import 'package:outbreak_tracker/entities/app_state.dart';
 import 'package:outbreak_tracker/redux/actions.dart';
 import 'package:outbreak_tracker/util/GlobalAppConstants.dart';
 import 'package:http/http.dart' as http;
+import 'package:outbreak_tracker/util/ProgressBarHelper.dart';
 
 class DialogHelpers {
+
   showRateOfSpreadData(BuildContext context, int countryId, int caseId) {
+    ProgressBarHelper(context).showProgressBar();
     getRateOfSpread(countryId, caseId).then((value) {
       StoreProvider.of<AppState>(context).dispatch(RateOfSpreadAction(value));
 
@@ -67,6 +70,7 @@ class DialogHelpers {
                   child: Text(GlobalAppConstants.dismiss),
                   onPressed: () {
                     Navigator.of(context, rootNavigator: true).pop();
+                    Navigator.pop(context);
                   },
                 )
               ],
@@ -76,10 +80,9 @@ class DialogHelpers {
   }
 
   showCountryData(BuildContext context, int countryId, int caseId) {
+    ProgressBarHelper(context).showProgressBar();
     getCountryAdvisory(countryId, caseId).then((value) {
-      print("original value $value");
       if (value.length == 0) {
-        print("I am here");
         Map<String, dynamic> values = new Map<String, dynamic>();
         values['id'] = 0;
         values['country_id'] = countryId;
@@ -93,7 +96,6 @@ class DialogHelpers {
         values['updated_at'] = 'No information to show currently';
         value.add(values);
       }
-      print("empty value $value");
       StoreProvider.of<AppState>(context)
           .dispatch(CountryAdvisoryAction(value));
 
@@ -150,6 +152,7 @@ class DialogHelpers {
                   child: Text(GlobalAppConstants.dismiss),
                   onPressed: () {
                     Navigator.of(context, rootNavigator: true).pop();
+                    Navigator.pop(context);
                   },
                 )
               ],
@@ -159,6 +162,7 @@ class DialogHelpers {
   }
 
   showHotspotData(BuildContext context, int countryId, int caseId) {
+    ProgressBarHelper(context).showProgressBar();
     return showCupertinoDialog(
         context: context,
         builder: (context) {
@@ -206,6 +210,7 @@ class DialogHelpers {
                 child: Text(GlobalAppConstants.dismiss),
                 onPressed: () {
                   Navigator.of(context, rootNavigator: true).pop();
+                  Navigator.pop(context);
                 },
               )
             ],
@@ -237,14 +242,10 @@ class DialogHelpers {
             'http://outbreak.africanlaughterpr.com/api/datasheets/country/list?country_id=$countryId'),
         headers: {'Accept': 'application/json'});
 
-    print("response code ${response.statusCode}");
     if (response.statusCode == 200) {
       var advisoryData = json.decode(response.body);
-      print("advisory data = $advisoryData");
       advisory = advisoryData['datasheets'];
     }
-
-    print("advisory = $advisory");
 
     return advisory;
   }
