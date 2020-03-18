@@ -11,8 +11,12 @@ import 'package:http/http.dart' as http;
 import 'package:outbreak_tracker/DialogHelpers.dart';
 import 'package:outbreak_tracker/entities/LocationLatLng.dart';
 import 'package:outbreak_tracker/entities/app_state.dart';
+import 'package:outbreak_tracker/redux/actions.dart';
+import 'package:outbreak_tracker/util/pages/ActiveCasesChartPage.dart';
 import 'package:outbreak_tracker/util/GlobalAppConstants.dart';
 import 'package:outbreak_tracker/util/ProgressBarHelper.dart';
+import 'package:outbreak_tracker/util/pages/ClountryDataPage.dart';
+import 'package:outbreak_tracker/util/pages/RateOfSpreadPage.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -91,13 +95,28 @@ class _HomePageState extends State<HomePage> {
     int caseId = 1;
     switch (s) {
       case 'Country Data':
-        _dialogHelpers.showCountryData(context, countryId, caseId);
+        ProgressBarHelper(context).showProgressBar();
+        _dialogHelpers.getCountryAdvisory(countryId, caseId).then((value) {
+          StoreProvider.of<AppState>(context).dispatch(CountryAdvisoryAction(value));
+          Navigator.pop(context);
+          Navigator.push(context, CupertinoPageRoute(
+              builder: (context) => CountryDataPage()
+          ));
+        });
+//        _dialogHelpers.showCountryData(context, countryId, caseId);
         break;
       case 'Hotspot':
         _dialogHelpers.showHotspotData(context, countryId, caseId);
         break;
       case 'Rate of spread':
-        _dialogHelpers.showRateOfSpreadData(context, countryId, caseId);
+        ProgressBarHelper(context).showProgressBar();
+        _dialogHelpers.getRateOfSpread(countryId, caseId).then((value) {
+          StoreProvider.of<AppState>(context).dispatch(RateOfSpreadAction(value));
+          Navigator.pop(context);
+          Navigator.push(context, CupertinoPageRoute(
+              builder: (context) => RateOfSpreadPage()
+          ));
+        });
         break;
     }
   }

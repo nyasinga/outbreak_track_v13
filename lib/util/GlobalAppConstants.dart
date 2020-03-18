@@ -17,4 +17,6 @@ class GlobalAppConstants {
   static final String searchCountry = "Search Country";
   static final String search = "Search";
 
+  static String table = "Table";
+
 }
