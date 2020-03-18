@@ -20,3 +20,9 @@ class CountryAdvisoryAction {
 
   CountryAdvisoryAction(this.payload);
 }
+
+class HotSpotsAction {
+  final List<dynamic> payload;
+
+  HotSpotsAction(this.payload);
+}

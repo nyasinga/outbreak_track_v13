@@ -87,13 +87,13 @@ class DialogHelpers {
         values['id'] = 0;
         values['country_id'] = countryId;
         values['case_id'] = caseId;
-        values['travel_advisories'] = 'No information to show currently';
-        values['special_measures'] = 'No information to show currently';
-        values['quarantines'] = 'No information to show currently';
-        values['prepared_hospitals'] = 'No information to show currently';
-        values['additional_info'] = 'No information to show currently';
-        values['created_at'] = 'No information to show currently';
-        values['updated_at'] = 'No information to show currently';
+        values['travel_advisories'] = 'Information Unavailable';
+        values['special_measures'] = 'Information Unavailable';
+        values['quarantines'] = 'Information Unavailable';
+        values['prepared_hospitals'] = 'Information Unavailable';
+        values['additional_info'] = 'Information Unavailable';
+        values['created_at'] = 'Information Unavailable';
+        values['updated_at'] = 'Information Unavailable';
         value.add(values);
       }
       StoreProvider.of<AppState>(context)
@@ -163,59 +163,88 @@ class DialogHelpers {
 
   showHotspotData(BuildContext context, int countryId, int caseId) {
     ProgressBarHelper(context).showProgressBar();
-    return showCupertinoDialog(
-        context: context,
-        builder: (context) {
-          return CupertinoAlertDialog(
-            title: Text(
-              GlobalAppConstants.hotspot,
-              style: TextStyle(color: GlobalAppConstants.appMainColor),
-            ),
-            content: Container(
-//                padding: EdgeInsets.symmetric(vertical: 20),
-//                height: 200,
-//                child: Row(
-//                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                  children: <Widget>[
-//                    Column(
-//                      crossAxisAlignment: CrossAxisAlignment.start,
-//                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                      mainAxisSize: MainAxisSize.max,
-//                      children: <Widget>[
-//                        Text('Total cases: '),
-//                        Text('New cases: '),
-//                        Text('Total deaths: '),
-//                        Text('Active cases: '),
-//                        Text('Total recovered: '),
-//                      ],
-//                    ),
-////TODO: Use provider state management
-////                    Column(
-////                      crossAxisAlignment: CrossAxisAlignment.start,
-////                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-////                      mainAxisSize: MainAxisSize.max,
-////                      children: <Widget>[
-////                        Text('$totalCases'),
-////                        Text('$totalCases'),
-////                        Text('$totalCases'),
-////                        Text('$totalCases'),
-////                        Text('$totalCases'),
-////                      ],
-////                    )
-//                  ],
-//                )
-                ),
-            actions: <Widget>[
-              CupertinoDialogAction(
-                child: Text(GlobalAppConstants.dismiss),
-                onPressed: () {
-                  Navigator.of(context, rootNavigator: true).pop();
-                  Navigator.pop(context);
+    getHotSpots(countryId, caseId).then((value) {
+      if (value.length == 0) {
+        Map<String, dynamic> values = new Map<String, dynamic>();
+        values['id'] = 0;
+        values['country_id'] = countryId;
+        values['case_id'] = caseId;
+        values['latitude'] = 'Information Unavailable';
+        values['longitude'] = 'Information Unavailable';
+        values['level'] = 'Information Unavailable';
+        values['radius'] = 'Information Unavailable';
+        value.add(values);
+      }
+      StoreProvider.of<AppState>(context)
+          .dispatch(HotSpotsAction(value));
+
+      return showCupertinoDialog(
+          context: context,
+          builder: (context) {
+            return CupertinoAlertDialog(
+              title: Text(
+                GlobalAppConstants.hotspot,
+                style: TextStyle(color: GlobalAppConstants.appMainColor),
+              ),
+              content: StoreConnector<AppState, AppState>(
+                converter: (store) => store.state,
+                builder: (context, state) {
+                  return Container(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      height: 200,
+                      width: 600,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisSize: MainAxisSize.max,
+                              children: <Widget>[
+                                Flexible(
+                                  child: Text('Latitude: '),
+                                ),
+                                Flexible(
+                                  child: Text('Longitude: '),
+                                ),
+                                Flexible(
+                                  child: Text('Level: '),
+                                ),
+                                Flexible(
+                                  child: Text('Radius: '),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisSize: MainAxisSize.max,
+                            children: <Widget>[
+                              Text(state.hotSpots.last['latitude']),
+                              Text(state.hotSpots.last['longitude']),
+                              Text(state.hotSpots.last['level']),
+                              Text(state.hotSpots.last['radius']),
+                            ],
+                          )
+                        ],
+                      )
+                  );
                 },
-              )
-            ],
-          );
-        });
+              ),
+              actions: <Widget>[
+                CupertinoDialogAction(
+                  child: Text(GlobalAppConstants.dismiss),
+                  onPressed: () {
+                    Navigator.of(context, rootNavigator: true).pop();
+                    Navigator.pop(context);
+                  },
+                )
+              ],
+            );
+          });
+    });
   }
 
   Future<List<dynamic>> getRateOfSpread(int countryId, int caseId) async {
@@ -248,5 +277,21 @@ class DialogHelpers {
     }
 
     return advisory;
+  }
+
+  Future<List<dynamic>> getHotSpots(int countryId, int caseId) async {
+    List<dynamic> hotspots = new List<dynamic>();
+
+    http.Response response = await http.get(
+        Uri.encodeFull(
+            'http://outbreak.africanlaughterpr.com/api/hotspots/country/list?country_id=$countryId'),
+        headers: {'Accept': 'application/json'});
+
+    if (response.statusCode == 200) {
+      var hotSpotsData = json.decode(response.body);
+      hotspots = hotSpotsData['hotspots'];
+    }
+
+    return hotspots;
   }
 }

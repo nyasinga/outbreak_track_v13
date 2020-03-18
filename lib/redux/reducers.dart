@@ -15,6 +15,9 @@ AppState reducer(AppState prevState, dynamic action) {
   else if (action is CountryAdvisoryAction) {
     newState.countryAdvisory = action.payload;
   }
+  else if (action is HotSpotsAction) {
+    newState.hotSpots = action.payload;
+  }
 
   return newState;
 }
