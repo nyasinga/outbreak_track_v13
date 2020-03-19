@@ -7,6 +7,10 @@ import 'package:outbreak_tracker/util/GlobalAppConstants.dart';
 import 'package:outbreak_tracker/util/pages/NewCasesChartPage.dart';
 
 class RateOfSpreadPage extends StatelessWidget {
+  final String currentCountry;
+
+  RateOfSpreadPage(this.currentCountry);
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -38,17 +42,24 @@ class RateOfSpreadPage extends StatelessWidget {
         builder: (context, state) {
           return Column(
             children: <Widget>[
-              Table(
-                  border: TableBorder.all(),
-                  columnWidths: {
-                    1: FractionColumnWidth(0.1),
-                    2: FractionColumnWidth(0.16),
-                    3: FractionColumnWidth(0.12),
-                    4: FractionColumnWidth(0.16),
-                    5: FractionColumnWidth(0.16),
-                    6: FractionColumnWidth(0.12),
-                  },
-                  children: generateTableRows(state)
+              Text(currentCountry,
+                style: TextStyle(fontWeight: FontWeight.bold,
+                    fontSize: 30),),
+              Expanded(
+                child: ClipRect(
+                  child: Table(
+                      border: TableBorder.all(),
+                      columnWidths: {
+                        1: FractionColumnWidth(0.1),
+                        2: FractionColumnWidth(0.16),
+                        3: FractionColumnWidth(0.12),
+                        4: FractionColumnWidth(0.16),
+                        5: FractionColumnWidth(0.16),
+                        6: FractionColumnWidth(0.12),
+                      },
+                      children: generateTableRows(state)
+                  ),
+                ),
               ),
               Padding(
                 padding: EdgeInsets.only(top: 80),
@@ -80,7 +91,7 @@ class RateOfSpreadPage extends StatelessWidget {
                       ),
                       onPressed: () {
                         Navigator.push(context, CupertinoPageRoute(
-                            builder: (context) => NewCasesChartPage()
+                            builder: (context) => NewCasesChartPage(null, true, state, currentCountry)
                         ));
                       },
                       color: CupertinoColors.white,
@@ -114,11 +125,14 @@ class RateOfSpreadPage extends StatelessWidget {
                       ),
                       onPressed: () {
                         Navigator.push(context, CupertinoPageRoute(
-                            builder: (context) => ActiveCasesChartPage()));
+                            builder: (context) => ActiveCasesChartPage(null, true, state, currentCountry)));
                       },
                       color: CupertinoColors.white,
                     ),
-                  )
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 40),
+                  ),
                 ],
               ),
             ],
@@ -181,7 +195,7 @@ class RateOfSpreadPage extends StatelessWidget {
           ]),
     );
 
-    for (int i = 0; i < state.rateOfSpread.length; i++) {
+    for (int i = (state.rateOfSpread.length - 1); i >= 0; i--) {
       rowList.add(TableRow(children: [
         Center(child: Text(state.rateOfSpread[i]['updated_at'].toString())),
         Center(child: Text(state.rateOfSpread[i]['total_cases'].toString())),

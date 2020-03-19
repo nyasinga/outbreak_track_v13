@@ -15,7 +15,7 @@ import 'package:outbreak_tracker/redux/actions.dart';
 import 'package:outbreak_tracker/util/pages/ActiveCasesChartPage.dart';
 import 'package:outbreak_tracker/util/GlobalAppConstants.dart';
 import 'package:outbreak_tracker/util/ProgressBarHelper.dart';
-import 'package:outbreak_tracker/util/pages/ClountryDataPage.dart';
+import 'package:outbreak_tracker/util/pages/CountryDataPage.dart';
 import 'package:outbreak_tracker/util/pages/RateOfSpreadPage.dart';
 
 class HomePage extends StatefulWidget {
@@ -100,7 +100,7 @@ class _HomePageState extends State<HomePage> {
           StoreProvider.of<AppState>(context).dispatch(CountryAdvisoryAction(value));
           Navigator.pop(context);
           Navigator.push(context, CupertinoPageRoute(
-              builder: (context) => CountryDataPage()
+              builder: (context) => CountryDataPage(currentCountry)
           ));
         });
 //        _dialogHelpers.showCountryData(context, countryId, caseId);
@@ -114,7 +114,7 @@ class _HomePageState extends State<HomePage> {
           StoreProvider.of<AppState>(context).dispatch(RateOfSpreadAction(value));
           Navigator.pop(context);
           Navigator.push(context, CupertinoPageRoute(
-              builder: (context) => RateOfSpreadPage()
+              builder: (context) => RateOfSpreadPage(currentCountry)
           ));
         });
         break;

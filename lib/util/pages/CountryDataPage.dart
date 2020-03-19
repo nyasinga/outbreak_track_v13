@@ -7,6 +7,10 @@ import 'package:outbreak_tracker/util/GlobalAppConstants.dart';
 import 'package:outbreak_tracker/util/pages/NewCasesChartPage.dart';
 
 class CountryDataPage extends StatelessWidget {
+  final String currentCountry;
+
+  CountryDataPage(this.currentCountry);
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -38,7 +42,7 @@ class CountryDataPage extends StatelessWidget {
         builder: (context, state) {
           return Column(
             children: <Widget>[
-              Text('Country Name',
+              Text(currentCountry,
                 style: TextStyle(fontWeight: FontWeight.bold,
                   fontSize: 30),),
               state.countryAdvisory.length > 0 ? Expanded(
