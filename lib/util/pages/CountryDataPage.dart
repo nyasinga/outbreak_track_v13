@@ -2,9 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:outbreak_tracker/entities/app_state.dart';
-import 'package:outbreak_tracker/util/pages/ActiveCasesChartPage.dart';
 import 'package:outbreak_tracker/util/GlobalAppConstants.dart';
-import 'package:outbreak_tracker/util/pages/NewCasesChartPage.dart';
 
 class CountryDataPage extends StatelessWidget {
   final String currentCountry;

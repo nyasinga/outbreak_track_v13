@@ -12,7 +12,6 @@ import 'package:outbreak_tracker/DialogHelpers.dart';
 import 'package:outbreak_tracker/entities/LocationLatLng.dart';
 import 'package:outbreak_tracker/entities/app_state.dart';
 import 'package:outbreak_tracker/redux/actions.dart';
-import 'package:outbreak_tracker/util/pages/ActiveCasesChartPage.dart';
 import 'package:outbreak_tracker/util/GlobalAppConstants.dart';
 import 'package:outbreak_tracker/util/ProgressBarHelper.dart';
 import 'package:outbreak_tracker/util/pages/CountryDataPage.dart';
