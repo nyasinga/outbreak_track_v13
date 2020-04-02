@@ -16,17 +16,19 @@ class CountryDataPage extends StatelessWidget {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         leading: CupertinoButton(
-          padding: EdgeInsets.symmetric(vertical: 5.0),
+          padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 5.0),
           child: Row(
             children: <Widget>[
               Icon(
                 CupertinoIcons.back,
                 color: CupertinoColors.white,
               ),
-              Text(
-                GlobalAppConstants.countryData,
-                style: TextStyle(
-                  color: CupertinoColors.white,
+              Flexible(
+                child: Text(
+                  "Country",
+                  style: TextStyle(
+                    color: CupertinoColors.white,
+                  ),
                 ),
               )
             ],
@@ -59,13 +61,17 @@ class CountryDataPage extends StatelessWidget {
                           Column(
                             children: <Widget>[
                               Text('Updated On', style: TextStyle(fontWeight: FontWeight.bold),),
-                              Text(state.countryAdvisory[i]['updated_at']),
+                              state.countryAdvisory[i]['updated_at'] != null ?
+                              Text(state.countryAdvisory[i]['updated_at']):
+                                  Text("None so far"),
                             ],
                           ),
                           Column(
                             children: <Widget>[
                               Text('Travel Advisory', style: TextStyle(fontWeight: FontWeight.bold),),
-                              Text(state.countryAdvisory[i]['travel_advisories']),
+                              state.countryAdvisory[i]['travel_advisories'] != null ?
+                              Text(state.countryAdvisory[i]['travel_advisories']):
+                                  Text("None so far"),
                             ],
                           ),
                           Padding(
@@ -74,7 +80,9 @@ class CountryDataPage extends StatelessWidget {
                           Column(
                             children: <Widget>[
                               Text('Special Measures', style: TextStyle(fontWeight: FontWeight.bold),),
-                              Text(state.countryAdvisory[i]['special_measures']),
+                              state.countryAdvisory[i]['special_measures'] != null ?
+                              Text(state.countryAdvisory[i]['special_measures']):
+                              Text("None so far"),
                             ],
                           ),
                           Padding(
@@ -83,7 +91,9 @@ class CountryDataPage extends StatelessWidget {
                           Column(
                             children: <Widget>[
                               Text('Quarantines', style: TextStyle(fontWeight: FontWeight.bold),),
-                              Text(state.countryAdvisory[i]['quarantines']),
+                              state.countryAdvisory[i]['quarantines'] != null ?
+                              Text(state.countryAdvisory[i]['quarantines']):
+                              Text("None so far"),
                             ],
                           ),
                           Padding(
@@ -92,7 +102,9 @@ class CountryDataPage extends StatelessWidget {
                           Column(
                             children: <Widget>[
                               Text('Prepared Hospitals', style: TextStyle(fontWeight: FontWeight.bold),),
-                              Text(state.countryAdvisory[i]['prepared_hospitals']),
+                              state.countryAdvisory[i]['prepared_hospitals'] != null ?
+                              Text(state.countryAdvisory[i]['prepared_hospitals']):
+                              Text("None so far"),
                             ],
                           ),
                           Padding(
@@ -101,7 +113,9 @@ class CountryDataPage extends StatelessWidget {
                           Column(
                             children: <Widget>[
                               Text('Additional Information', style: TextStyle(fontWeight: FontWeight.bold),),
-                              Text(state.countryAdvisory[i]['additional_info']),
+                              state.countryAdvisory[i]['additional_info'] != null ?
+                              Text(state.countryAdvisory[i]['additional_info']):
+                              Text("None so far"),
                             ],
                           ),
                         ],

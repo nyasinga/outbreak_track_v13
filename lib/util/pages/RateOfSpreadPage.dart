@@ -24,7 +24,7 @@ class RateOfSpreadPage extends StatelessWidget {
                 color: CupertinoColors.white,
               ),
               Text(
-                GlobalAppConstants.countryData,
+                "Country",
                 style: TextStyle(
                   color: CupertinoColors.white,
                 ),
@@ -71,7 +71,7 @@ class RateOfSpreadPage extends StatelessWidget {
                       border: Border.all(),
                       borderRadius: BorderRadius.all(Radius.circular(10.0)),
                     ),
-                    width: 200,
+                    width: 300,
                     child: CupertinoButton(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -105,7 +105,7 @@ class RateOfSpreadPage extends StatelessWidget {
                       border: Border.all(),
                       borderRadius: BorderRadius.all(Radius.circular(10.0)),
                     ),
-                    width: 200,
+                    width: 300,
                     child: CupertinoButton(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
