@@ -9,10 +9,10 @@ PODS:
   - google_maps_flutter (0.0.1):
     - Flutter
     - GoogleMaps
-  - GoogleMaps (3.8.0):
-    - GoogleMaps/Maps (= 3.8.0)
-  - GoogleMaps/Base (3.8.0)
-  - GoogleMaps/Maps (3.8.0):
+  - GoogleMaps (2.7.0):
+    - GoogleMaps/Maps (= 2.7.0)
+  - GoogleMaps/Base (2.7.0)
+  - GoogleMaps/Maps (2.7.0):
     - GoogleMaps/Base
   - location_permissions (2.0.5):
     - Flutter
@@ -49,9 +49,9 @@ SPEC CHECKSUMS:
   geolocator: 7cdcf71180b80913b3cd84ab715d3b5365b378af
   google_api_availability: 526574c9a5a0ae541e18c65f98e47afc11f53c8b
   google_maps_flutter: d0dd62f5a7d39bae61057eb9f52dd778d99c7c6c
-  GoogleMaps: 7c8d66d70e4e8c300f43a7219d8fdaad7b325a9a
+  GoogleMaps: f79af95cb24d869457b1f961c93d3ce8b2f3b848
   location_permissions: 4a49d4e5bec5b653643e551ab77963cc99bb0e4a
 
-PODFILE CHECKSUM: e45c292f618eeca3034958d33b444b6e1249b55f
+PODFILE CHECKSUM: c34e2287a9ccaa606aeceab922830efb9a6ff69a
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.9.1
