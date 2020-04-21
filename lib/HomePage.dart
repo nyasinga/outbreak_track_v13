@@ -4,7 +4,8 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart'
+    show DeviceOrientation, SystemChrome, rootBundle;
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -25,6 +26,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool searchSelected = false;
   String currentCountry = 'Kenya';
+  String countrySummary = "Summary not available";
   Completer<GoogleMapController> _controller = Completer();
   GoogleMapController mapController;
   static const LatLng _center = const LatLng(45.521563, -122.677433);
@@ -44,10 +46,24 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     rootBundle.loadString('assets/map_style.txt').then((string) {
       _mapStyle = string;
     });
+  }
+
+  @override
+  dispose() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    super.dispose();
   }
 
   Future<LocationLatLng> findSearchedLocation(String location) async {
@@ -66,6 +82,22 @@ class _HomePageState extends State<HomePage> {
     }
 
     return locationLatLng;
+  }
+
+  Future<String> getCountrySummary(state) async {
+    int countryId = getCountryId(state);
+    String countrySummary = "";
+    http.Response response = await http.get(
+        Uri.encodeFull(
+            'http://outbreak.africanlaughterpr.com/api/countries/country/summary/list?country_id=$countryId'),
+        headers: {'Accept': 'application/json'});
+
+    if (response.statusCode == 200) {
+      var countryResponse = json.decode(response.body);
+      countrySummary = countryResponse["summary"][0]["summary"];
+    }
+
+    return countrySummary;
   }
 
   void addMarkerToMarkerList(double lat, double lng) {
@@ -96,11 +128,13 @@ class _HomePageState extends State<HomePage> {
       case 'Country Data':
         ProgressBarHelper(context).showProgressBar();
         _dialogHelpers.getCountryAdvisory(countryId, caseId).then((value) {
-          StoreProvider.of<AppState>(context).dispatch(CountryAdvisoryAction(value));
+          StoreProvider.of<AppState>(context)
+              .dispatch(CountryAdvisoryAction(value));
           Navigator.pop(context);
-          Navigator.push(context, CupertinoPageRoute(
-              builder: (context) => CountryDataPage(currentCountry)
-          ));
+          Navigator.push(
+              context,
+              CupertinoPageRoute(
+                  builder: (context) => CountryDataPage(currentCountry)));
         });
 //        _dialogHelpers.showCountryData(context, countryId, caseId);
         break;
@@ -110,11 +144,13 @@ class _HomePageState extends State<HomePage> {
       case 'Rate of spread':
         ProgressBarHelper(context).showProgressBar();
         _dialogHelpers.getRateOfSpread(countryId, caseId).then((value) {
-          StoreProvider.of<AppState>(context).dispatch(RateOfSpreadAction(value));
+          StoreProvider.of<AppState>(context)
+              .dispatch(RateOfSpreadAction(value));
           Navigator.pop(context);
-          Navigator.push(context, CupertinoPageRoute(
-              builder: (context) => RateOfSpreadPage(currentCountry)
-          ));
+          Navigator.push(
+              context,
+              CupertinoPageRoute(
+                  builder: (context) => RateOfSpreadPage(currentCountry)));
         });
         break;
     }
@@ -176,117 +212,153 @@ class _HomePageState extends State<HomePage> {
                 color: Color.fromRGBO(255, 255, 255, 0.7),
               ),
               searchSelected
-                  ? Align(
-                      //User already searched
-                      alignment: Alignment.topCenter,
-                      child: Column(
-                        children: <Widget>[
-                          Image(
-                            image: AssetImage(
-                                'assets/graphics/outbreak-logo.jpeg'),
+                  ? Column(
+                      children: <Widget>[
+                        Image(
+                          image:
+                              AssetImage('assets/graphics/outbreak-logo.jpeg'),
+                        ),
+                        Container(
+                          width: 140.0,
+                          padding: EdgeInsetsDirectional.only(top: 20.0),
+                          child: Divider(
+                            thickness: 7.0,
+                            color: GlobalAppConstants.appMainColor,
                           ),
-                          Container(
-                            width: 140.0,
-                            padding: EdgeInsetsDirectional.only(top: 20.0),
-                            child: Divider(
-                              thickness: 7.0,
+                        ),
+                        Text(
+                          GlobalAppConstants.countryData,
+                          style: TextStyle(
                               color: GlobalAppConstants.appMainColor,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Container(
+                          padding: EdgeInsetsDirectional.only(top: 20.0),
+                        ),
+                        Container(
+                            height: 40,
+                            color: CupertinoColors.white,
+                            child: SizedBox.expand(
+                                child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 10, horizontal: 20),
+                              child: Wrap(
+                                spacing: 30,
+                                direction: Axis.horizontal,
+                                alignment: WrapAlignment.spaceBetween,
+                                children: <Widget>[
+                                  StoreConnector<AppState, AppState>(
+                                    converter: (store) => store.state,
+                                    builder: (context, state) {
+                                      return GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            detailsLinkClicked(
+                                                GlobalAppConstants.countryData,
+                                                context,
+                                                state);
+                                          });
+                                        },
+                                        child: Text(
+                                          '${GlobalAppConstants.countryData}',
+                                          style: TextStyle(
+                                              color: GlobalAppConstants
+                                                  .appMainColor),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  StoreConnector<AppState, AppState>(
+                                    converter: (store) => store.state,
+                                    builder: (context, state) {
+                                      return GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            detailsLinkClicked(
+                                                GlobalAppConstants.hotspot,
+                                                context,
+                                                state);
+                                          });
+                                        },
+                                        child: Text(
+                                          '${GlobalAppConstants.hotspot}',
+                                          style: TextStyle(
+                                              color: GlobalAppConstants
+                                                  .appMainColor),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  StoreConnector<AppState, AppState>(
+                                    converter: (store) => store.state,
+                                    builder: (context, state) {
+                                      return GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            detailsLinkClicked(
+                                                GlobalAppConstants.rateOfSpread,
+                                                context,
+                                                state);
+                                          });
+                                        },
+                                        child: Text(
+                                          '${GlobalAppConstants.rateOfSpread}',
+                                          style: TextStyle(
+                                              color: GlobalAppConstants
+                                                  .appMainColor),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ))),
+                        Container(
+                          padding: EdgeInsetsDirectional.only(top: 100.0),
+                        ),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.white,
+                                border: Border.all(
+                                  color: CupertinoColors.black,
+                                  width: 0.5,
+                                ),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 20.0, vertical: 10.0),
+                              child: Wrap(
+                                children: <Widget>[
+                                  Center(
+                                      child: Text(
+                                    "Summary",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  )),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(vertical: 3),
+                                  ),
+                                  StoreConnector<AppState, AppState>(
+                                      converter: (store) => store.state,
+                                      builder: (context, state) {
+                                        return SingleChildScrollView(
+                                            child: getCountrySummaryTextWidget(
+                                                state));
+                                      }),
+                                ],
+                              ),
                             ),
                           ),
-                          Text(
-                            GlobalAppConstants.countryData,
-                            style: TextStyle(
-                                color: GlobalAppConstants.appMainColor,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          Container(
-                            padding: EdgeInsetsDirectional.only(top: 20.0),
-                          ),
-                          Container(
-                              height: 40,
-                              color: CupertinoColors.white,
-                              child: SizedBox.expand(
-                                  child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 20),
-                                child: Wrap(
-                                  spacing: 30,
-                                  direction: Axis.horizontal,
-                                  alignment: WrapAlignment.spaceBetween,
-                                  children: <Widget>[
-                                    StoreConnector<AppState, AppState>(
-                                      converter: (store) => store.state,
-                                      builder: (context, state) {
-                                        return GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              detailsLinkClicked(
-                                                  GlobalAppConstants
-                                                      .countryData,
-                                                  context,
-                                                  state);
-                                            });
-                                          },
-                                          child: Text(
-                                            '${GlobalAppConstants.countryData}',
-                                            style: TextStyle(
-                                                color: GlobalAppConstants
-                                                    .appMainColor),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    StoreConnector<AppState, AppState>(
-                                      converter: (store) => store.state,
-                                      builder: (context, state) {
-                                        return GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              detailsLinkClicked(
-                                                  GlobalAppConstants.hotspot,
-                                                  context,
-                                                  state);
-                                            });
-                                          },
-                                          child: Text(
-                                            '${GlobalAppConstants.hotspot}',
-                                            style: TextStyle(
-                                                color: GlobalAppConstants
-                                                    .appMainColor),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    StoreConnector<AppState, AppState>(
-                                      converter: (store) => store.state,
-                                      builder: (context, state) {
-                                        return GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              detailsLinkClicked(
-                                                  GlobalAppConstants
-                                                      .rateOfSpread,
-                                                  context,
-                                                  state);
-                                            });
-                                          },
-                                          child: Text(
-                                            '${GlobalAppConstants.rateOfSpread}',
-                                            style: TextStyle(
-                                                color: GlobalAppConstants
-                                                    .appMainColor),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              )))
-                        ],
-                      ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 40.0),
+                        )
+                      ],
                     )
                   : Stack(
                       children: <Widget>[
@@ -360,9 +432,11 @@ class _HomePageState extends State<HomePage> {
                                             },
                                             onSubmitted: (searchValue) {
                                               //Removes keyboard
-                                              FocusScopeNode currentFocus = FocusScope.of(context);
+                                              FocusScopeNode currentFocus =
+                                                  FocusScope.of(context);
 
-                                              if (!currentFocus.hasPrimaryFocus) {
+                                              if (!currentFocus
+                                                  .hasPrimaryFocus) {
                                                 currentFocus.unfocus();
                                               }
                                             },
@@ -384,7 +458,8 @@ class _HomePageState extends State<HomePage> {
                                 builder: (context, state) {
                                   return CupertinoButton(
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: <Widget>[
                                         Text(
                                           'Next',
@@ -399,10 +474,12 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     onPressed: () {
                                       try {
-                                        ProgressBarHelper(this.context).showProgressBar();
-                                        searchValue = "${searchValue.trim()[0]
-                                            .toUpperCase()}${searchValue.substring(1).trim().toLowerCase()}";
-                                        var intExpected = state.countries[searchValue]['id'];
+                                        ProgressBarHelper(this.context)
+                                            .showProgressBar();
+                                        searchValue =
+                                            "${searchValue.trim()[0].toUpperCase()}${searchValue.substring(1).trim().toLowerCase()}";
+                                        var intExpected =
+                                            state.countries[searchValue]['id'];
                                         findSearchedLocation(searchValue)
                                             .then((value) {
                                           setState(() {
@@ -417,8 +494,13 @@ class _HomePageState extends State<HomePage> {
                                             }
                                           });
                                         });
+                                        getCountrySummary(state).then((value) {
+                                          setState(() {
+                                            countrySummary = value;
+                                          });
+                                        });
                                         Navigator.pop(this.context);
-                                      } catch(e) {
+                                      } catch (e) {
                                         Navigator.pop(this.context);
                                         showErrorMessage();
                                       }
@@ -440,18 +522,31 @@ class _HomePageState extends State<HomePage> {
     return countryId;
   }
 
-  void showErrorMessage() => showCupertinoModalPopup<void> (
-    context: context,
-    builder: (BuildContext context) {
-      return Center(
-        heightFactor: 8,
-        child: Container(
-          width: 200,
-          child: Text('Country searched is not valid. Kindly confirm you named the country correctly',
-            style: TextStyle(fontWeight: FontWeight.bold, color: GlobalAppConstants.appMainColor),),
-        ),
-      );
-    }
-  );
+  void showErrorMessage() => showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return Center(
+          heightFactor: 8,
+          child: Container(
+            width: 200,
+            child: Text(
+              'Country searched is not valid. Kindly confirm you named the country correctly',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: GlobalAppConstants.appMainColor),
+            ),
+          ),
+        );
+      });
 
+  void _portraitModeOnly() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
+  Widget getCountrySummaryTextWidget(state) {
+    return Text(countrySummary);
+  }
 }

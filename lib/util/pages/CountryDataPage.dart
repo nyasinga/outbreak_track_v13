@@ -42,9 +42,12 @@ class CountryDataPage extends StatelessWidget {
         builder: (context, state) {
           return Column(
             children: <Widget>[
-              Text(currentCountry,
-                style: TextStyle(fontWeight: FontWeight.bold,
-                  fontSize: 30),),
+              Container(
+                child: Text(currentCountry,
+                  style: TextStyle(fontWeight: FontWeight.bold,
+                    fontSize: 30),),
+                padding: EdgeInsets.only(top: 10.0),
+              ),
               state.countryAdvisory.length > 0 ? Expanded(
                 child: ListView.builder(
                   itemCount: state.countryAdvisory.length,
@@ -58,15 +61,17 @@ class CountryDataPage extends StatelessWidget {
                           ),
                           Column(
                             children: <Widget>[
-                              Text('Updated On', style: TextStyle(fontWeight: FontWeight.bold),),
-                              state.countryAdvisory[i]['updated_at'] != null ?
-                              Text(state.countryAdvisory[i]['updated_at']):
-                                  Text("None so far"),
-                            ],
-                          ),
-                          Column(
-                            children: <Widget>[
-                              Text('Travel Advisory', style: TextStyle(fontWeight: FontWeight.bold),),
+                              Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Container(
+                                      child: Center(child: Text('Lockdown', style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white),)),
+                                      color: GlobalAppConstants.appMainColor,
+                                      padding: EdgeInsets.symmetric(vertical: 5),
+                                    ),
+                                  ),
+                                ],
+                              ),
                               state.countryAdvisory[i]['travel_advisories'] != null ?
                               Text(state.countryAdvisory[i]['travel_advisories']):
                                   Text("None so far"),
@@ -77,7 +82,17 @@ class CountryDataPage extends StatelessWidget {
                           ),
                           Column(
                             children: <Widget>[
-                              Text('Special Measures', style: TextStyle(fontWeight: FontWeight.bold),),
+                              Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Container(
+                                      child: Center(child: Text('Travel', style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white),)),
+                                      color: GlobalAppConstants.appMainColor,
+                                      padding: EdgeInsets.symmetric(vertical: 5),
+                                    ),
+                                  ),
+                                ],
+                              ),
                               state.countryAdvisory[i]['special_measures'] != null ?
                               Text(state.countryAdvisory[i]['special_measures']):
                               Text("None so far"),
@@ -88,7 +103,17 @@ class CountryDataPage extends StatelessWidget {
                           ),
                           Column(
                             children: <Widget>[
-                              Text('Quarantines', style: TextStyle(fontWeight: FontWeight.bold),),
+                              Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Container(
+                                      child: Center(child: Text('Special Measures', style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white),)),
+                                      color: GlobalAppConstants.appMainColor,
+                                      padding: EdgeInsets.symmetric(vertical: 5),
+                                    ),
+                                  ),
+                                ],
+                              ),
                               state.countryAdvisory[i]['quarantines'] != null ?
                               Text(state.countryAdvisory[i]['quarantines']):
                               Text("None so far"),
@@ -99,20 +124,19 @@ class CountryDataPage extends StatelessWidget {
                           ),
                           Column(
                             children: <Widget>[
-                              Text('Prepared Hospitals', style: TextStyle(fontWeight: FontWeight.bold),),
+                              Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Container(
+                                      child: Center(child: Text('Food', style: TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.white),)),
+                                      color: GlobalAppConstants.appMainColor,
+                                      padding: EdgeInsets.symmetric(vertical: 5),
+                                    ),
+                                  ),
+                                ],
+                              ),
                               state.countryAdvisory[i]['prepared_hospitals'] != null ?
                               Text(state.countryAdvisory[i]['prepared_hospitals']):
-                              Text("None so far"),
-                            ],
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(top: 20),
-                          ),
-                          Column(
-                            children: <Widget>[
-                              Text('Additional Information', style: TextStyle(fontWeight: FontWeight.bold),),
-                              state.countryAdvisory[i]['additional_info'] != null ?
-                              Text(state.countryAdvisory[i]['additional_info']):
                               Text("None so far"),
                             ],
                           ),
